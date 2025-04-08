@@ -304,7 +304,6 @@ if prompt:
                     error_message = "Error: Los argumentos proporcionados no son válidos. Por favor, revisa tu entrada."
                 append_message({'role': 'model', 'parts': error_message})
                 st.rerun()
-                return
 
         try:
             append_message({'role': 'model', 'parts':response.text})
@@ -322,4 +321,5 @@ if prompt:
 
 
 #st.session_state.chat_session
+
 
