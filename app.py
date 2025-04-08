@@ -293,7 +293,6 @@ if prompt:
                     error_message = "Error: Los argumentos proporcionados no son válidos. Por favor, revisa tu entrada."
                 append_message({'role': 'model', 'parts': error_message})
                 st.rerun()
-                return
         else:
             try:
                 response = st.session_state.chat.send_message(prmt['parts'][0])
