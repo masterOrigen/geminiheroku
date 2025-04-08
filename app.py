@@ -64,19 +64,50 @@ def append_message(message: dict) -> None:
 def load_model() -> genai.GenerativeModel:
     """
     The function `load_model()` returns an instance of the `genai.GenerativeModel` class initialized with the model name
-    'gemini-pro'.
+    'gemini-pro' and configured with appropriate generation parameters.
     :return: an instance of the `genai.GenerativeModel` class.
     """
-    model = genai.GenerativeModel('gemini-pro')
+    model = genai.GenerativeModel('gemini-pro',
+        generation_config={
+            "temperature": 0.7,
+            "top_p": 0.8,
+            "top_k": 40,
+            "max_output_tokens": 2048
+        })
     return model
 
 @st.cache_resource
 def load_modelvision() -> genai.GenerativeModel:
     """
-    The function `load_modelvision` loads a generative model for vision tasks using the `gemini-pro-vision` model.
+    The function `load_modelvision` loads a generative model for vision tasks using the `gemini-pro-vision` model
+    with appropriate generation and safety settings.
     :return: an instance of the `genai.GenerativeModel` class.
     """
-    model = genai.GenerativeModel('gemini-pro-vision')
+    model = genai.GenerativeModel('gemini-pro-vision',
+        generation_config={
+            "temperature": 0.7,
+            "top_p": 0.8,
+            "top_k": 40,
+            "max_output_tokens": 2048
+        },
+        safety_settings=[
+            {
+                "category": "HARM_CATEGORY_HARASSMENT",
+                "threshold": "BLOCK_MEDIUM_AND_ABOVE"
+            },
+            {
+                "category": "HARM_CATEGORY_HATE_SPEECH",
+                "threshold": "BLOCK_MEDIUM_AND_ABOVE"
+            },
+            {
+                "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+                "threshold": "BLOCK_MEDIUM_AND_ABOVE"
+            },
+            {
+                "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+                "threshold": "BLOCK_MEDIUM_AND_ABOVE"
+            }
+        ])
     return model
 
 
@@ -248,42 +279,25 @@ if prompt:
       spinertxt = 'Wait a moment, I am thinking...'
     with st.spinner(spinertxt):
         if len(prmt['parts']) > 1:
-            response = vision.generate_content(
-                prmt['parts'],
-                stream=True,
-                safety_settings=[
-                    {
-                        "category": "HARM_CATEGORY_HARASSMENT",
-                        "threshold": "BLOCK_MEDIUM_AND_ABOVE"
-                    },
-                    {
-                        "category": "HARM_CATEGORY_HATE_SPEECH",
-                        "threshold": "BLOCK_MEDIUM_AND_ABOVE"
-                    },
-                    {
-                        "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-                        "threshold": "BLOCK_MEDIUM_AND_ABOVE"
-                    },
-                    {
-                        "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
-                        "threshold": "BLOCK_MEDIUM_AND_ABOVE"
-                    }
-                ],
-                generation_config={
-                    "temperature": 0.7,
-                    "top_p": 0.8,
-                    "top_k": 40,
-                    "max_output_tokens": 2048
-                }
-            )
+            try:
+                response = vision.generate_content(
+                    prmt['parts'],
+                    stream=True
+                )
             response.resolve()
         else:
-            response = st.session_state.chat.send_message(prmt['parts'][0])
+            try:
+                response = st.session_state.chat.send_message(prmt['parts'][0])
 
         try:
           append_message({'role': 'model', 'parts':response.text})
         except Exception as e:
-          append_message({'role': 'model', 'parts':f'{type(e).__name__}: {e}'})
+          error_message = f"Error al procesar la respuesta: {str(e)}"
+          if 'NotFound' in str(e):
+              error_message = "Error: El modelo no está disponible en este momento. Por favor, inténtalo de nuevo más tarde."
+          elif 'InvalidArgument' in str(e):
+              error_message = "Error: Los argumentos proporcionados no son válidos. Por favor, revisa tu entrada."
+          append_message({'role': 'model', 'parts': error_message})
 
 
         st.rerun()
