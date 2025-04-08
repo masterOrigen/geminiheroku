@@ -284,20 +284,38 @@ if prompt:
                     prmt['parts'],
                     stream=True
                 )
-            response.resolve()
+                response.resolve()
+            except Exception as e:
+                error_message = f"Error al procesar la imagen: {str(e)}"
+                if 'NotFound' in str(e):
+                    error_message = "Error: El modelo de visión no está disponible en este momento. Por favor, inténtalo de nuevo más tarde."
+                elif 'InvalidArgument' in str(e):
+                    error_message = "Error: Los argumentos proporcionados no son válidos. Por favor, revisa tu entrada."
+                append_message({'role': 'model', 'parts': error_message})
+                st.rerun()
+                return
         else:
             try:
                 response = st.session_state.chat.send_message(prmt['parts'][0])
+            except Exception as e:
+                error_message = f"Error al procesar el mensaje: {str(e)}"
+                if 'NotFound' in str(e):
+                    error_message = "Error: El modelo no está disponible en este momento. Por favor, inténtalo de nuevo más tarde."
+                elif 'InvalidArgument' in str(e):
+                    error_message = "Error: Los argumentos proporcionados no son válidos. Por favor, revisa tu entrada."
+                append_message({'role': 'model', 'parts': error_message})
+                st.rerun()
+                return
 
         try:
-          append_message({'role': 'model', 'parts':response.text})
+            append_message({'role': 'model', 'parts':response.text})
         except Exception as e:
-          error_message = f"Error al procesar la respuesta: {str(e)}"
-          if 'NotFound' in str(e):
-              error_message = "Error: El modelo no está disponible en este momento. Por favor, inténtalo de nuevo más tarde."
-          elif 'InvalidArgument' in str(e):
-              error_message = "Error: Los argumentos proporcionados no son válidos. Por favor, revisa tu entrada."
-          append_message({'role': 'model', 'parts': error_message})
+            error_message = f"Error al procesar la respuesta: {str(e)}"
+            if 'NotFound' in str(e):
+                error_message = "Error: El modelo no está disponible en este momento. Por favor, inténtalo de nuevo más tarde."
+            elif 'InvalidArgument' in str(e):
+                error_message = "Error: Los argumentos proporcionados no son válidos. Por favor, revisa tu entrada."
+            append_message({'role': 'model', 'parts': error_message})
 
 
         st.rerun()
