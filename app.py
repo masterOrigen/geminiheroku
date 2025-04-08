@@ -64,10 +64,10 @@ def append_message(message: dict) -> None:
 def load_model() -> genai.GenerativeModel:
     """
     The function `load_model()` returns an instance of the `genai.GenerativeModel` class initialized with the model name
-    'gemini-pro' and configured with appropriate generation parameters.
+    'gemini-2.0-flash' and configured with appropriate generation parameters.
     :return: an instance of the `genai.GenerativeModel` class.
     """
-    model = genai.GenerativeModel('gemini-pro',
+    model = genai.GenerativeModel('gemini-2.0-flash',
         generation_config={
             "temperature": 0.7,
             "top_p": 0.8,
@@ -79,11 +79,11 @@ def load_model() -> genai.GenerativeModel:
 @st.cache_resource
 def load_modelvision() -> genai.GenerativeModel:
     """
-    The function `load_modelvision` loads a generative model for vision tasks using the `gemini-pro-vision` model
+    The function `load_modelvision` loads a generative model for vision tasks using the `gemini-2.0-flash-vision` model
     with appropriate generation and safety settings.
     :return: an instance of the `genai.GenerativeModel` class.
     """
-    model = genai.GenerativeModel('gemini-pro-vision',
+    model = genai.GenerativeModel('gemini-2.0-flash-vision',
         generation_config={
             "temperature": 0.7,
             "top_p": 0.8,
